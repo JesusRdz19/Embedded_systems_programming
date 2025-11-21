@@ -1,0 +1,35 @@
+#define _XTAL_FREQ 20000000
+#include <xc.h>
+
+#define DEBOUNCE_MS 50
+
+// Antirrebote para RA0
+unsigned char leer_boton(void){
+    if(PORTAbits.RA0 == 1){
+        __delay_ms(DEBOUNCE_MS);
+        if(PORTAbits.RA0 == 1){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void main(void){
+    
+    TRISB = 0x00;   // B salida
+    TRISA = 0xFF;   // A entrada
+
+    while(1){
+
+        if(leer_boton() == 1){
+            // Encender LED en RB0
+            PORTBbits.RB0 = 1;
+        }
+        else{
+            // Apagar LED
+            PORTBbits.RB0 = 0;
+        }
+
+    }
+
+}
