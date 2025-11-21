@@ -1,0 +1,48 @@
+#define _XTAL_FREQ 20000000
+#include <xc.h>
+#define DEBOUNCE_MS 50
+// Antirrebote
+unsigned char leer_boton(void){
+    if (PORTAbits.RA0 == 1){
+        __delay_ms(DEBOUNCE_MS);
+        if (PORTAbits.RA0 == 1){
+            return 1;
+        }
+    }
+    return 0;
+}
+void main(void) {
+    TRISB = 0x00; //b salida
+    TRISA = 0xff; //a como entrada
+    // Patrones para 0–9 en display de 7 segmentos (cátodo común)
+    const unsigned char DISPLAY[10] = {
+        0b00111111, // 0
+        0b00000110, // 1
+        0b01011011, // 2
+        0b01001111, // 3
+        0b01100110, // 4
+        0b01101101, // 5
+        0b01111101, // 6
+        0b00000111, // 7
+        0b01111111, // 8
+        0b01101111  // 9
+    };
+    unsigned char contador = 0;
+    unsigned char ultimo_estado = 0;
+    unsigned char estado_actual;
+    // Inicia mostrando 0
+    PORTB = DISPLAY[contador];
+    while(1){
+        estado_actual = leer_boton();
+        // Flanco de subida: antes estaba en 0 y ahora en 1
+        if (estado_actual == 1 && ultimo_estado == 0){
+            contador++;
+            if (contador > 9){
+                contador = 0;   // Reinicia después de 9
+            }
+            PORTB = DISPLAY[contador];
+        }
+        ultimo_estado = estado_actual;
+    }
+    return;
+}
